@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule 1 Recipe Browser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Style for active filter/sort buttons */
+        .active-btn {
+            background-color: #10b981; /* Emerald-500 */
+            color: white;
+        }
+        .inactive-btn {
+             background-color: #ffffff; /* White */
+             color: #374151; /* Gray-700 */
+             border: 1px solid #d1d5db; /* Gray-300 */
+        }
+        .inactive-btn:hover {
+            background-color: #f9fafb; /* Gray-50 */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Schedule 1 Recipe Browser</h1>
+
+    <div class="controls mb-8 p-4 bg-white rounded-lg shadow-md sticky top-4 z-10">
+        <div class="flex flex-wrap gap-4 items-center justify-center">
+            <div class="filter-group">
+                <label class="font-semibold mr-2 text-gray-700">Filter by Substance:</label>
+                <select id="filterSubstance" class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="All">All Substances</option>
+                    <option value="OG Kush">OG Kush</option>
+                    <option value="Sour Diesel">Sour Diesel</option>
+                    <option value="Green Crack">Green Crack</option>
+                    <option value="Grandaddy Purple">Grandaddy Purple</option>
+                    <option value="Crystal (Meth)">Crystal (Meth)</option>
+                    <option value="Cocaine">Cocaine</option>
+                </select>
+            </div>
+
+            <div class="sort-group flex flex-wrap gap-2 items-center">
+                <label class="font-semibold mr-2 text-gray-700">Sort by:</label>
+                <button data-sort="profit" class="sort-btn inactive-btn px-3 py-1 rounded-md text-sm font-medium transition duration-150 ease-in-out">Profit</button>
+                <button data-sort="price" class="sort-btn inactive-btn px-3 py-1 rounded-md text-sm font-medium transition duration-150 ease-in-out">Sell Price</button>
+                <button data-sort="cost" class="sort-btn inactive-btn px-3 py-1 rounded-md text-sm font-medium transition duration-150 ease-in-out">Cost</button>
+                 <button data-sort="name" class="sort-btn inactive-btn px-3 py-1 rounded-md text-sm font-medium transition duration-150 ease-in-out">Name</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="recipeContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        </div>
+
+    <script>
+        // --- Recipe Data ---
+        // Extracted from the provided Markdown document
+        const recipes = [
+            // OG Kush
+            { baseSubstance: "OG Kush", name: "Grandaddy Diamond", ingredients: ["Banana"], cost: 2, price: 50, profit: 48, effects: ["Gingeritis", "Sneaky"] },
+            { baseSubstance: "OG Kush", name: "OG Addy", ingredients: ["Addy"], cost: 9, price: 54, profit: 45, effects: ["Calming", "Thought-Provoking"] },
+            { baseSubstance: "OG Kush", name: "Simple Mix: Banana-Cuke-Banana", ingredients: ["Banana", "Cuke", "Banana"], cost: 6, price: 80, profit: 74, effects: ["Jennerising", "Thought-Provoking", "Energizing", "Gingeritis"] },
+            { baseSubstance: "OG Kush", name: "Simple Mix: Mouthwash-Viagra-Banana", ingredients: ["Mouth Wash", "Viagra", "Banana"], cost: 10, price: 88, profit: 78, effects: ["Anti-Gravity", "Balding", "Tropic Thunder", "Gingeritis"] },
+            { baseSubstance: "OG Kush", name: "Early Complex 1", ingredients: ["Donut", "Mouth Wash", "Cuke", "Banana", "Viagra"], cost: 15, price: 118, profit: 103, effects: ["Anti-Gravity", "Jennerising", "Balding", "Thought-Provoking", "Gingeritis", "Tropic Thunder"] },
+            { baseSubstance: "OG Kush", name: "Early Complex 2", ingredients: ["Donut", "Mouth Wash", "Cuke", "Banana", "Viagra", "Flu Medicine"], cost: 20, price: 127, profit: 107, effects: ["Anti-Gravity", "Jennerising", "Balding", "Thought-Provoking", "Gingeritis", "Tropic Thunder", "Sedating"] },
+            { baseSubstance: "OG Kush", name: "Mid-Tier Mix: Paracetamol Start", ingredients: ["Paracetamol", "Viagra", "Donut", "Banana", "Cuke", "Paracetamol", "Banana"], cost: 22, price: 136, profit: 114, effects: ["Anti-Gravity", "Jennerising", "Tropic Thunder", "Calorie-Dense", "Thought-Provoking", "Balding", "Sneaky", "Gingeritis"] },
+            { baseSubstance: "OG Kush", name: 'High-Profit Mix: "Aspen Mint" Base', ingredients: ["Paracetamol", "Cuke", "Paracetamol", "Gasoline", "Cuke", "Mega Bean", "Battery"], cost: 30, price: 164, profit: 134, effects: ["Anti-Gravity", "Glowing", "Balding", "Tropic Thunder", "Zombifying", "Cyclopean", "Foggy", "Bright-Eyed"] },
+            { baseSubstance: "OG Kush", name: "Best OG Kush Mix / Girl Scout Monkey", ingredients: ["Banana", "Gasoline", "Paracetamol", "Cuke", "Mega Bean", "Battery", "Banana", "Cuke"], cost: 31, price: 171, profit: 140, effects: ["Tropic Thunder", "Anti-Gravity", "Zombifying", "Jennerising", "Glowing", "Cyclopean", "Bright-Eyed", "Thought-Provoking"] },
+            { baseSubstance: "OG Kush", name: "High-Profit Mix: Horse Semen Start", ingredients: ["Horse Semen", "Paracetamol", "Gasoline", "Cuke", "Mega Bean", "Paracetamol", "Mega Bean", "Battery"], cost: 44, price: 172, profit: 128, effects: ["Anti-Gravity", "Long Faced", "Tropic Thunder", "Zombifying", "Cyclopean", "Glowing", "Foggy", "Bright-Eyed"] },
+            // Sour Diesel
+            { baseSubstance: "Sour Diesel", name: "Sour Battery", ingredients: ["Battery"], cost: 8, price: 54, profit: 46, effects: ["Refreshing", "Bright-Eyed"] },
+            { baseSubstance: "Sour Diesel", name: "Simple Mix: Cuke-Flu-Banana", ingredients: ["Cuke", "Flu Medicine", "Banana"], cost: 9, price: 71, profit: 62, effects: ["Refreshing", "Thought-Provoking", "Sedating", "Gingeritis"] },
+            { baseSubstance: "Sour Diesel", name: "Simple Mix: Viagra-Flu-Donut", ingredients: ["Viagra", "Flu Medicine", "Donut"], cost: 12, price: 75, profit: 63, effects: ["Refreshing", "Tropic Thunder", "Sedating", "Calorie-Dense"] },
+            { baseSubstance: "Sour Diesel", name: "Simple Mix: Cuke-Flu-Mega Bean", ingredients: ["Cuke", "Flu Medicine", "Mega Bean"], cost: 14, price: 81, profit: 67, effects: ["Refreshing", "Cyclopean", "Sedating", "Foggy"] },
+            { baseSubstance: "Sour Diesel", name: "Electrifying Mix: Iodine-Horse Semen", ingredients: ["Iodine", "Horse Semen"], cost: 17, price: 85, profit: 68, effects: ["Electrifying", "Jennerising", "Long Faced"] },
+            { baseSubstance: "Sour Diesel", name: "Mid-Tier Mix: Cuke-Flu Start", ingredients: ["Cuke", "Flu Medicine", "Donut", "Mega Bean", "Battery"], cost: 25, price: 102, profit: 77, effects: ["Refreshing", "Glowing", "Sedating", "Calorie-Dense", "Foggy", "Bright-Eyed"] },
+            { baseSubstance: "Sour Diesel", name: "Mid-Tier Mix: Paracetamol-Energy Start", ingredients: ["Paracetamol", "Energy Drink", "Cuke", "Motor Oil", "Cuke", "Battery", "Energy Drink"], cost: 33, price: 112, profit: 79, effects: ["Refreshing", "Anti-Gravity", "Athletic", "Sneaky", "Slippery", "Energizing", "Bright-Eyed"] },
+            { baseSubstance: "Sour Diesel", name: 'Complex Mix: "Miracle Mix"', ingredients: ["Flu Medicine", "Energy Drink", "Chili", "Flu Medicine", "Mouthwash", "Banana", "Iodine", "Horsemen (Horse Semen?)"], cost: 46, price: 200, profit: 154, effects: ["Complex/Unknown"] }, // Assuming price 200, profit 154 for sorting
+            { baseSubstance: "Sour Diesel", name: "High-Profit Mix: Iodine-Paracetamol Start", ingredients: ["Iodine", "Paracetamol", "Chili", "Viagra", "Paracetamol", "Cuke", "Motor Oil"], cost: 37, price: 144, profit: 107, effects: ["Thought-Provoking", "Jennerising", "Bright-Eyed", "Spicy", "Tropic Thunder", "Anti-Gravity", "Munchies", "Slippery"] },
+            // Green Crack
+            { baseSubstance: "Green Crack", name: "Green Chili", ingredients: ["Chili"], cost: 7, price: 56, profit: 49, effects: ["Energizing", "Spicy"] },
+            { baseSubstance: "Green Crack", name: "Simple Mix: Gasoline-Viagra", ingredients: ["Gasoline", "Viagra"], cost: 9, price: 65, profit: 56, effects: ["Bright-Eyed", "Toxic", "Tropic Thunder"] },
+            { baseSubstance: "Green Crack", name: "Simple Mix: Viagra-Horse Semen", ingredients: ["Viagra", "Horse Semen"], cost: 13, price: 77, profit: 64, effects: ["Energizing", "Tropic Thunder", "Long Faced"] },
+            { baseSubstance: "Green Crack", name: "Simple Mix: Viagra-Mega Bean", ingredients: ["Viagra", "Mega Bean"], cost: 11, price: 83, profit: 72, effects: ["Cyclopean", "Tropic Thunder", "Foggy"] },
+            { baseSubstance: "Green Crack", name: "Mid-Tier Mix: Paracetamol Start", ingredients: ["Paracetamol", "Cuke", "Banana", "Viagra", "Donut"], cost: 14, price: 106, profit: 92, effects: ["Jennerising", "Sneaky", "Thought-Provoking", "Gingeritis", "Tropic Thunder", "Calorie-Dense"] },
+            { baseSubstance: "Green Crack", name: "Mid-Tier Mix: Addy-Battery Start", ingredients: ["Addy", "Battery", "Chili", "Iodine", "Viagra"], cost: 36, price: 116, profit: 80, effects: ["Energizing", "Thought-Provoking", "Bright-Eyed", "Spicy", "Jennerising", "Tropic Thunder"] },
+            { baseSubstance: "Green Crack", name: "Mid-Tier Mix: Donut-Flu Start", ingredients: ["Donut", "Flu Medicine", "Viagra", "Battery", "Addy", "Iodine"], cost: 37, price: 120, profit: 83, effects: ["Energizing", "Calorie-Dense", "Gingeritis", "Tropic Thunder", "Bright-Eyed", "Thought-Provoking", "Jennerising"] },
+            { baseSubstance: "Green Crack", name: "High-Profit Mix: Gasoline-Paracetamol Start", ingredients: ["Gasoline", "Paracetamol", "Cuke", "Banana", "Gasoline", "Cuke", "Viagra", "Banana"], cost: 28, price: 148, profit: 120, effects: ["Cyclopean", "Tropic Thunder", "Jennerising", "Thought-Provoking", "Anti-Gravity", "Bright-Eyed", "Energizing", "Gingeritis"] },
+            { baseSubstance: "Green Crack", name: "High-Profit Mix: Energy Drink-Paracetamol Start", ingredients: ["Energy Drink", "Paracetamol", "Gasoline", "Cuke", "Battery", "Mega Bean", "Chili"], cost: 38, price: 166, profit: 128, effects: ["Glowing", "Long Faced", "Tropic Thunder", "Zombifying", "Cyclopean", "Bright-Eyed", "Foggy", "Spicy"] },
+            // Grandaddy Purple
+            { baseSubstance: "Grandaddy Purple", name: "Simple Mix: Energy-Paracetamol", ingredients: ["Energy Drink", "Paracetamol"], cost: 9, price: 74, profit: 65, effects: ["Anti-Gravity", "Athletic", "Sneaky"] },
+            { baseSubstance: "Grandaddy Purple", name: "Simple Mix: Viagra-Cuke-Mega Bean", ingredients: ["Viagra", "Cuke", "Mega Bean"], cost: 13, price: 92, profit: 79, effects: ["Sedating", "Tropic Thunder", "Cyclopean", "Foggy"] },
+            { baseSubstance: "Grandaddy Purple", name: "Mid-Tier Mix: Addy-Battery Start", ingredients: ["Addy", "Battery", "Mega Bean", "Flu Medicine", "Cuke"], cost: 31, price: 101, profit: 70, effects: ["Thought-Provoking", "Energizing", "Bright-Eyed", "Cyclopean", "Sedating"] },
+            { baseSubstance: "Grandaddy Purple", name: "High-Profit Mix: Viagra-Paracetamol Start", ingredients: ["Viagra", "Paracetamol", "Energy Drink", "Cuke", "Banana", "Paracetamol", "Motor Oil"], cost: 26, price: 139, profit: 113, effects: ["Anti-Gravity", "Tropic Thunder", "Jennerising", "Athletic", "Thought-Provoking", "Gingeritis", "Sneaky", "Slippery"] },
+            { baseSubstance: "Grandaddy Purple", name: "High-Profit Mix: Paracetamol-Cuke Start", ingredients: ["Paracetamol", "Cuke", "Paracetamol", "Gasoline", "Cuke", "Mega Bean", "Battery"], cost: 30, price: 154, profit: 124, effects: ["Sedating", "Glowing", "Balding", "Tropic Thunder", "Zombifying", "Cyclopean", "Foggy", "Bright-Eyed"] },
+            { baseSubstance: "Grandaddy Purple", name: "High-Profit Mix: Banana-Cuke Start", ingredients: ["Banana", "Cuke", "Paracetamol", "Gasoline", "Cuke", "Battery", "Horse Semen", "Mega Bean"], cost: 38, price: 167, profit: 129, effects: ["Sedating", "Electrifying", "Glowing", "Tropic Thunder", "Zombifying", "Cyclopean", "Bright-Eyed", "Long Faced"] },
+            // Crystal (Meth)
+            { baseSubstance: "Crystal (Meth)", name: "Simple Mix: Paracetamol-Cuke-Banana", ingredients: ["Paracetamol", "Cuke", "Banana"], cost: 7, price: 144, profit: 137, effects: ["Jennerising", "Thought-Provoking", "Gingeritis"] },
+            { baseSubstance: "Crystal (Meth)", name: "Simple Mix: Chili-Viagra-Iodine", ingredients: ["Chili", "Viagra", "Iodine"], cost: 19, price: 158, profit: 139, effects: ["Spicy", "Tropic Thunder", "Jennerising"] },
+            { baseSubstance: "Crystal (Meth)", name: "Mid-Tier Mix: Cuke-Viagra-Mega Bean", ingredients: ["Cuke", "Viagra", "Mega Bean"], cost: 13, price: 167, profit: 154, effects: ["Cyclopean", "Tropic Thunder", "Foggy"] },
+            { baseSubstance: "Crystal (Meth)", name: "Mid-Tier Mix: Energy-Mouthwash Start", ingredients: ["Energy Drink", "Mouth Wash", "Battery", "Horse Semen"], cost: 27, price: 178, profit: 151, effects: ["Athletic", "Balding", "Bright-Eyed", "Long Faced"] },
+            { baseSubstance: "Crystal (Meth)", name: "High-Profit Mix: Gasoline-Cuke Start", ingredients: ["Gasoline", "Cuke", "Battery", "Mega Bean"], cost: 22, price: 203, profit: 181, effects: ["Zombifying", "Cyclopean", "Bright-Eyed", "Foggy"] },
+            { baseSubstance: "Crystal (Meth)", name: "High-Profit Mix: Addy-Battery Start", ingredients: ["Addy", "Battery", "Horse Semen", "Chili", "Mouth Wash", "Viagra", "Paracetamol", "Motor Oil"], cost: 50, price: 277, profit: 227, effects: ["Athletic", "Bright-Eyed", "Long Faced", "Spicy", "Balding", "Tropic Thunder", "Sneaky", "Slippery"] },
+            { baseSubstance: "Crystal (Meth)", name: "Best Crystal Mix: Community", ingredients: ["Banana", "Cuke", "Paracetamol", "Gasoline", "Cuke", "Battery", "Horse Semen", "Mega Bean"], cost: 38, price: 340, profit: 302, effects: ["Electrifying", "Glowing", "Tropic Thunder", "Zombifying", "Cyclopean", "Bright-Eyed", "Long-Faced", "Foggy"] },
+            // Cocaine
+            { baseSubstance: "Cocaine", name: "Simple Mix: Mouthwash-Viagra-Banana", ingredients: ["Mouthwash", "Viagra", "Banana"], cost: 10, price: 294, profit: 284, effects: ["Balding", "Tropic Thunder", "Gingeritis"] },
+            { baseSubstance: "Cocaine", name: "Mid-Tier Mix: Horse Semen Start", ingredients: ["Horse Semen", "Viagra", "Mega Bean", "Cuke"], cost: 22, price: 414, profit: 392, effects: ["Long Faced", "Tropic Thunder", "Cyclopean", "Energizing"] },
+            { baseSubstance: "Cocaine", name: "Mid-Tier Mix: Iodine-Horse Semen Start", ingredients: ["Iodine", "Horse Semen", "Battery", "Viagra"], cost: 29, price: 420, profit: 391, effects: ["Jennerising", "Long Faced", "Bright-Eyed", "Tropic Thunder"] },
+            { baseSubstance: "Cocaine", name: "High-Profit Mix: Battery-Addy Start", ingredients: ["Battery", "Addy", "Paracetamol", "Chili", "Cuke", "Energy Drink", "Motor Oil"], cost: 41, price: 513, profit: 472, effects: ["Bright-Eyed", "Thought-Provoking", "Anti-Gravity", "Sedating", "Munchies", "Athletic", "Slippery"] },
+            { baseSubstance: "Cocaine", name: "Very High-Profit Mix: Banana-Cuke Start", ingredients: ["Banana", "Cuke", "Paracetamol", "Gasoline", "Cuke", "Battery", "Horse Semen"], cost: 34, price: 729, profit: 695, effects: ["Electrifying", "Glowing", "Tropic Thunder", "Zombifying", "Cyclopean", "Bright-Eyed", "Long Faced", "Foggy"] },
+            { baseSubstance: "Cocaine", name: 'Most Profitable Mix: "Wedding Cake"?', ingredients: ["Motor Oil", "Cuke", "Paracetamol", "Gasoline", "Cuke", "Battery", "Horse Semen", "Mega Bean"], cost: 42, price: 735, profit: 693, effects: ["Anti-Gravity", "Glowing", "Tropic Thunder", "Zombifying", "Cyclopean", "Bright-Eyed", "Long-Faced", "Foggy"] }
+        ];
+
+        // --- DOM Elements ---
+        const recipeContainer = document.getElementById('recipeContainer');
+        const filterSubstanceSelect = document.getElementById('filterSubstance');
+        const sortButtons = document.querySelectorAll('.sort-btn');
+
+        // --- State Variables ---
+        let currentFilter = 'All';
+        let currentSort = { key: 'profit', direction: 'desc' }; // Default sort: highest profit first
+
+        // --- Functions ---
+
+        /**
+         * Renders the recipe cards to the DOM based on the provided recipe array.
+         * @param {Array} recipesToRender - The array of recipe objects to display.
+         */
+        function renderRecipes(recipesToRender) {
+            recipeContainer.innerHTML = ''; // Clear existing recipes
+
+            if (recipesToRender.length === 0) {
+                recipeContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">No recipes match the current filter.</p>';
+                return;
+            }
+
+            recipesToRender.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-lg shadow-lg p-5 border border-gray-200 hover:shadow-xl transition-shadow duration-200 flex flex-col'; // Added flex properties
+
+                // Format ingredients list
+                const ingredientsList = recipe.ingredients.map(ing =>
+                    `<li class="text-sm text-gray-600">${ing}</li>`
+                ).join('');
+
+                // Format effects list
+                const effectsList = recipe.effects.map(eff =>
+                    `<li class="text-sm text-gray-600">${eff}</li>`
+                ).join('');
+
+                card.innerHTML = `
+                    <h3 class="text-lg font-semibold mb-2 text-emerald-700">${recipe.name}</h3>
+                    <p class="text-sm font-medium text-gray-500 mb-3">Base: ${recipe.baseSubstance}</p>
+                    <div class="grid grid-cols-3 gap-x-4 mb-4 text-center">
+                        <div>
+                            <span class="block text-xs text-gray-500 uppercase">Cost</span>
+                            <span class="block text-lg font-semibold text-red-600">$${recipe.cost}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-gray-500 uppercase">Price</span>
+                            <span class="block text-lg font-semibold text-blue-600">$${recipe.price}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-gray-500 uppercase">Profit</span>
+                            <span class="block text-lg font-semibold text-green-600">$${recipe.profit}</span>
+                        </div>
+                    </div>
+                    <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-sm mb-1 text-gray-800">Ingredients (Order Matters):</h4>
+                            <ul class="list-disc list-inside pl-2">${ingredientsList}</ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-sm mb-1 text-gray-800">Effects:</h4>
+                            <ul class="list-disc list-inside pl-2">${effectsList}</ul>
+                        </div>
+                    </div>
+                `;
+                recipeContainer.appendChild(card);
+            });
+        }
+
+        /**
+         * Filters and sorts the recipes based on current state, then renders them.
+         */
+        function updateDisplay() {
+            // 1. Filter
+            let filteredRecipes = recipes;
+            if (currentFilter !== 'All') {
+                filteredRecipes = recipes.filter(recipe => recipe.baseSubstance === currentFilter);
+            }
+
+            // 2. Sort
+            const { key, direction } = currentSort;
+            filteredRecipes.sort((a, b) => {
+                let comparison = 0;
+                if (a[key] < b[key]) {
+                    comparison = -1;
+                } else if (a[key] > b[key]) {
+                    comparison = 1;
+                }
+                return direction === 'desc' ? (comparison * -1) : comparison;
+            });
+
+             // Update button styles
+             sortButtons.forEach(button => {
+                if (button.dataset.sort === key) {
+                    button.classList.remove('inactive-btn');
+                    button.classList.add('active-btn');
+                    // Add arrow indicator for sort direction
+                    button.innerHTML = `${key.charAt(0).toUpperCase() + key.slice(1)} ${direction === 'desc' ? '▼' : '▲'}`;
+                } else {
+                    button.classList.remove('active-btn');
+                    button.classList.add('inactive-btn');
+                    // Remove arrow indicator
+                     button.innerHTML = `${button.dataset.sort.charAt(0).toUpperCase() + button.dataset.sort.slice(1)}`;
+                }
+            });
+
+
+            // 3. Render
+            renderRecipes(filteredRecipes);
+        }
+
+        // --- Event Listeners ---
+
+        // Filter select change
+        filterSubstanceSelect.addEventListener('change', (event) => {
+            currentFilter = event.target.value;
+            updateDisplay();
+        });
+
+        // Sort button clicks
+        sortButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sortKey = button.dataset.sort;
+
+                // If clicking the same key, toggle direction, otherwise set to default (desc for numbers, asc for name)
+                if (currentSort.key === sortKey) {
+                    currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
+                } else {
+                    currentSort.key = sortKey;
+                    currentSort.direction = (sortKey === 'cost' || sortKey === 'name') ? 'asc' : 'desc'; // Default asc for cost/name, desc for profit/price
+                }
+                updateDisplay();
+            });
+        });
+
+        // --- Initial Render ---
+        // Perform initial sort and render on page load
+        updateDisplay();
+
+    </script>
+
+</body>
+</html>
